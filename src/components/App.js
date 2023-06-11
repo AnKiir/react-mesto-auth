@@ -1,6 +1,11 @@
 import React from "react";
 import { useState, useEffect } from "react";
+import { Route }  from "react-router-dom";
 import { CurrentUserContext } from "../contexts/CurrentUserContext";
+import ProtectedRoute from "./ProtectedRoute";
+
+import Login from "./Login";
+import Register from "./Register";
 
 import Header from './Header';
 import Main from "./Main";
@@ -12,16 +17,22 @@ import EditProfilePopup from "./EditProfilePopup";
 import EditAvatarPopup from "./EditAvatarPopup";
 import AddPlacePopup from "./AddPlacePopup";
 
-import api from "../utils/Api";
+import InforTooltip from "./InfoTooltip";
 
+import api from "../utils/Api";
+import * as auth from "../utils/Auth";
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState({});
+  const [emailValue, setEmailValue] = useState('');
+
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = useState(false);
   const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = useState(false);
-  const [selectedCard, setSelectedCard] = useState({});
-  const [currentUser, setCurrentUser] = useState({});
+
   const [cards, setCards] = useState([]);
+  const [selectedCard, setSelectedCard] = useState({});
 
   useEffect(() => {
     Promise.all([api.getUserData(), api.getInitialCards()])
