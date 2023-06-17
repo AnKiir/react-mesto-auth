@@ -26,9 +26,10 @@ function App() {
   const navigate = useNavigate();
 
   const [loggedIn, setLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState({});
   const [userName, setUser] = useState('');
+  const [currentUser, setCurrentUser] = useState({});
   const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState(false);
+  const [tooltip, setTooltip] = useState({image: '', message: ''});
 
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = useState(false);
@@ -152,9 +153,39 @@ function App() {
   }
 
   // всё что имеет отношение к регистрации и авторизации
-  const handleLogin = (userName) => {
-    setLoggedIn(true)
-    setUser(userName)
+const registerUser = ({ email, password }) => {
+  auth.register({ email, password })
+  .then((res) => {
+    setIsInfoTooltipOpen(true);
+    setTooltip({
+      image: true,
+      message: 'Вы успешно зарегистрировались!'});
+      navigate("/signin", { replace: true });
+  })
+  .catch((err) => {
+    setIsInfoTooltipOpen(true);
+    setTooltip({
+      image: false,
+      message: 'Что-то пошло не так! Попробуйте ещё раз.'});
+      console.log(err);
+  })
+}
+
+  const handleLogin = (formValue) => {
+    const { email, password } = formValue;
+    auth.authorize({email, password})
+      .then(data => {
+        if (data.token) {
+          setUser(userName);
+          localStorage.setItem('jwt', data.token);
+          setLoggedIn(true)
+          handleLogin(formValue.email)
+          navigate("/", { replace: true });
+        }
+      })
+      .catch((err) => {
+         console.log(err)
+      });
   }
 
   const tokenCheck = () => {
@@ -189,26 +220,23 @@ function App() {
         <Routes>
           <Route path='/'
             element={
-            <ProtectedRoute
-              element={Main}
-              onEditAvatar={handleEditAvatarClick}
-              onEditProfile={handleEditProfileClick}
-              onAddCard={handleAddPlaceClick}
-              onCardClick={handleCardClick}
-              onCardLike={handleLikeCard}
-              onCardDelete={handleCardDelete}
-              cards={cards}
-              loggedIn={loggedIn} />}
+              <ProtectedRoute
+                element={Main}
+                onEditAvatar={handleEditAvatarClick}
+                onEditProfile={handleEditProfileClick}
+                onAddCard={handleAddPlaceClick}
+                onCardClick={handleCardClick}
+                onCardLike={handleLikeCard}
+                onCardDelete={handleCardDelete}
+                cards={cards}
+                loggedIn={loggedIn} />}
           />
 
           {/*тут рут для логина*/}
           <Route path='/signin' element={
             <div>
               <Login
-                setLoggedIn={setLoggedIn}
-                handleLogin={handleLogin}
-                onInfoTooltipOpen={setIsInfoTooltipOpen}
-                setUser={setUser} />
+                onLogin={handleLogin} />
             </div>
           }></Route>
 
@@ -216,8 +244,7 @@ function App() {
           <Route path='/signup' element={
             <div>
               <Register
-                onInfoTooltipOpen={setIsInfoTooltipOpen}
-                setUser={setUser} />
+                registerUser={registerUser} />
             </div>
           }></Route>
 
@@ -254,7 +281,8 @@ function App() {
         <PopupWithForm name="delete-card" title="Вы уверены?" btnText="Да" />
 
         <InfoTooltip
-          isOpenConfig={isInfoTooltipOpen}
+          isOpen={isInfoTooltipOpen}
+          tooltip={tooltip}
           onClose={closeAllPopups}
         />
 

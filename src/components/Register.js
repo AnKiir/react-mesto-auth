@@ -1,28 +1,25 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom";
-import * as auth from "../utils/Auth";
+import { Link } from "react-router-dom";
 
-export default function Register({ onInfoTooltipOpen }) {
+export default function Register({ registerUser }) {
     const [formValue, setFormValue] = useState({
         email: '',
         password: ''
     })
 
-    const navigate = useNavigate;
-    
     const handleChange = (evt) => {
         const { name, value } = evt.target;
         setFormValue({ ...formValue, [name]: value });
     }
 
+    const { email, password } = formValue;
+
     const handleSubmit = (evt) => {
         evt.preventDefault();
-        const { email, password } = formValue;
-        auth.register(password, email)
-            .then(data => {
-                navigate("/signin", { replace: true })
-            })
-            .catch(() => onInfoTooltipOpen({ isOpen: true, status: false }))
+        if (!formValue.email || !formValue.password) {
+            return;
+        }
+        registerUser({ email, password });
     }
 
     return (
@@ -46,9 +43,9 @@ export default function Register({ onInfoTooltipOpen }) {
                     placeholder="Пароль"
                     onChange={handleChange}
                     value={formValue.password} />
-            <button className="login__button" type="submit">Зарегистрироваться</button>
+                <button className="login__button" type="submit">Зарегистрироваться</button>
             </form>
-            <a href="/signin" className="login__link">Уже зарегистрированы? Войти</a>
+            <Link to="/signin" className="login__link">Уже зарегистрированы? Войти</Link>
         </div>
     )
 }

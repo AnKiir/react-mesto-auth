@@ -1,14 +1,10 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom";
-import * as auth from "../utils/Auth";
 
-export default function Login({ setLoggedIn, handleLogin, onInfoTooltipOpen }) {
+export default function Login({ onLogin }) {
     const [formValue, setFormValue] = useState({
         email: '',
-        passowrd: ''
+        password: ''
     })
-
-    const navigate = useNavigate;
 
     const handleChange = (evt) => {
         const { name, value } = evt.target;
@@ -17,32 +13,25 @@ export default function Login({ setLoggedIn, handleLogin, onInfoTooltipOpen }) {
 
     const handleSubmit = (evt) => {
         evt.preventDefault();
-        const { email, password } = formValue;
-        auth.authorize(password, email)
-            .then(data => {
-                if (data.token) {
-                    localStorage.setItem('jwt', data.token);
-                    setLoggedIn(true)
-                    handleLogin(formValue.email)
-                    navigate("/");
-                }
-            })
-            .catch((err) => {
-                onInfoTooltipOpen({ isOpen: true, status: false });
-                console.log(err)
-            })
+        if (!formValue.email || !formValue.password) {
+            return;
+        }
+        onLogin({
+            email: formValue.email, 
+            password: formValue.password});
     }
 
     return (
         <div className="login">
             <h2 className="login__title">Вход</h2>
-            <form action="#" className="login__form" noValidate onSubmit={handleSubmit}>
+            <form action="#" className="login__form" onSubmit={handleSubmit}>
                 <input
                     className="login__input"
                     required
                     type="email"
                     name="email"
                     placeholder="E-mail"
+                    value={formValue.email}
                     onChange={handleChange} />
 
                 <input
@@ -51,6 +40,7 @@ export default function Login({ setLoggedIn, handleLogin, onInfoTooltipOpen }) {
                     type="password"
                     name="password"
                     placeholder="Пароль"
+                    value={formValue.password}
                     onChange={handleChange} />
 
                 <button className="login__button" type="submit">Войти</button>
