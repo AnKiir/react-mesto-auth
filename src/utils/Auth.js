@@ -7,28 +7,28 @@ function checkResponse(res) {
     return Promise.reject(`Ошибка: ${res.status}`);
 }
 
-export const register = (email, password) => {
+export const register = (password, email) => {
     return fetch(`${BASE_URL}/signup`, {
         method: "POST",
         headers: {
             Accept: "application/json",
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ password, email }),
     })
     .then((res) => {
         return checkResponse(res);
     })
 }
 
-export const authorize = (email, password) => {
+export const authorize = (password, email) => {
     return fetch(`${BASE_URL}/signin`, {
         method: "POST",
         headers: {
             Accept: "application/json",
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ password, email }),
     })
     .then((res) => {
         return checkResponse(res);
@@ -42,7 +42,6 @@ export const getContent = (jwt) => {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${jwt}`
         },
-        body: JSON.stringify({ email, password }),
     })
     .then((res) => {
         return checkResponse(res);

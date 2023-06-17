@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { Route }  from "react-router-dom";
+import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import { CurrentUserContext } from "../contexts/CurrentUserContext";
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -17,15 +17,18 @@ import EditProfilePopup from "./EditProfilePopup";
 import EditAvatarPopup from "./EditAvatarPopup";
 import AddPlacePopup from "./AddPlacePopup";
 
-import InforTooltip from "./InfoTooltip";
+import InfoTooltip from "./InfoTooltip";
 
 import api from "../utils/Api";
 import * as auth from "../utils/Auth";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
+
+  const [loggedIn, setLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState({});
-  const [emailValue, setEmailValue] = useState('');
+  const [userName, setUser] = useState('');
+  const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState(false);
 
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = useState(false);
@@ -35,15 +38,17 @@ function App() {
   const [selectedCard, setSelectedCard] = useState({});
 
   useEffect(() => {
-    Promise.all([api.getUserData(), api.getInitialCards()])
-      .then(([user, cards]) => {
-        setCurrentUser(user);
-        setCards(cards);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, []);
+    if (loggedIn) {
+      Promise.all([api.getUserData(), api.getInitialCards()])
+        .then(([user, cards]) => {
+          setCurrentUser(user);
+          setCards(cards);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+  }, [loggedIn]);
 
   useEffect(() => {
     if (
@@ -137,6 +142,7 @@ function App() {
     setIsEditProfilePopupOpen(false)
     setIsAddPlacePopupOpen(false)
     setSelectedCard({});
+    setIsInfoTooltipOpen(false);
   }
 
   function handleEscClose(e) {
@@ -145,20 +151,81 @@ function App() {
     }
   }
 
+  // всё что имеет отношение к регистрации и авторизации
+  const handleLogin = (userName) => {
+    setLoggedIn(true)
+    setUser(userName)
+  }
+
+  const tokenCheck = () => {
+    const jwt = localStorage.getItem('jwt');
+    if (jwt) {
+      auth.getContent(jwt)
+        .then(({ data }) => {
+          setLoggedIn(true);
+          setUser(data.email);
+          handleLogin(data.email)
+          navigate('/', { replace: true })
+        })
+        .catch(err => console.log(err));
+    }
+  }
+
+  useEffect(() => {
+    tokenCheck();
+  }, []);
+
+  const handleLogout = () => {
+    setLoggedIn(false);
+    setUser("");
+    localStorage.removeItem("jwt");
+  };
+
   return (
     <CurrentUserContext.Provider value={currentUser}>
       <div className="page">
-        <Header />
-        <Main
-          onEditAvatar={handleEditAvatarClick}
-          onEditProfile={handleEditProfileClick}
-          onAddCard={handleAddPlaceClick}
-          onCardClick={handleCardClick}
-          onCardLike={handleLikeCard}
-          onCardDelete={handleCardDelete}
-          cards={cards} />
-        <Footer />
+        <Header userName={userName} onLogout={handleLogout} />
 
+        <Routes>
+          <Route path='/'
+            element={
+            <ProtectedRoute
+              element={Main}
+              onEditAvatar={handleEditAvatarClick}
+              onEditProfile={handleEditProfileClick}
+              onAddCard={handleAddPlaceClick}
+              onCardClick={handleCardClick}
+              onCardLike={handleLikeCard}
+              onCardDelete={handleCardDelete}
+              cards={cards}
+              loggedIn={loggedIn} />}
+          />
+
+          {/*тут рут для логина*/}
+          <Route path='/signin' element={
+            <div>
+              <Login
+                setLoggedIn={setLoggedIn}
+                handleLogin={handleLogin}
+                onInfoTooltipOpen={setIsInfoTooltipOpen}
+                setUser={setUser} />
+            </div>
+          }></Route>
+
+          {/*тут рут для регистрации*/}
+          <Route path='/signup' element={
+            <div>
+              <Register
+                onInfoTooltipOpen={setIsInfoTooltipOpen}
+                setUser={setUser} />
+            </div>
+          }></Route>
+
+          <Route path='*' element={<Navigate to='/' replace={true} />} />
+
+        </Routes>
+
+        {loggedIn && <Footer />}
         {/*обновление профиля*/}
         <EditProfilePopup
           isOpen={isEditProfilePopupOpen}
@@ -185,6 +252,12 @@ function App() {
 
         {/*удаление карточки*/}
         <PopupWithForm name="delete-card" title="Вы уверены?" btnText="Да" />
+
+        <InfoTooltip
+          isOpenConfig={isInfoTooltipOpen}
+          onClose={closeAllPopups}
+        />
+
       </div>
     </CurrentUserContext.Provider>
   );
