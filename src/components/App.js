@@ -178,7 +178,7 @@ function App() {
     auth.authorize({ email, password })
       .then(data => {
         if (data.token) {
-          setUser(userName);
+          setUser(formValue.email);
           localStorage.setItem('jwt', data.token);
           setLoggedIn(true)
           navigate("/", { replace: true });
@@ -201,7 +201,6 @@ function App() {
         .then(({ data }) => {
           setLoggedIn(true);
           setUser(data.email);
-          handleLogin(data.email)
           navigate('/', { replace: true })
         })
         .catch(err => console.log(err));
