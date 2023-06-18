@@ -29,7 +29,7 @@ function App() {
   const [userName, setUser] = useState('');
   const [currentUser, setCurrentUser] = useState({});
   const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState(false);
-  const [tooltip, setTooltip] = useState({image: '', message: ''});
+  const [tooltip, setTooltip] = useState({ image: '', message: '' });
 
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = useState(false);
@@ -153,38 +153,44 @@ function App() {
   }
 
   // всё что имеет отношение к регистрации и авторизации
-const registerUser = ({ email, password }) => {
-  auth.register({ email, password })
-  .then((res) => {
-    setIsInfoTooltipOpen(true);
-    setTooltip({
-      image: true,
-      message: 'Вы успешно зарегистрировались!'});
-      navigate("/signin", { replace: true });
-  })
-  .catch((err) => {
-    setIsInfoTooltipOpen(true);
-    setTooltip({
-      image: false,
-      message: 'Что-то пошло не так! Попробуйте ещё раз.'});
-      console.log(err);
-  })
-}
+  const registerUser = ({ email, password }) => {
+    auth.register({ email, password })
+      .then((res) => {
+        setIsInfoTooltipOpen(true);
+        setTooltip({
+          image: true,
+          message: 'Вы успешно зарегистрировались!'
+        });
+        navigate("/signin", { replace: true });
+      })
+      .catch((err) => {
+        setIsInfoTooltipOpen(true);
+        setTooltip({
+          image: false,
+          message: 'Что-то пошло не так! Попробуйте ещё раз.'
+        });
+        console.log(err);
+      })
+  }
 
   const handleLogin = (formValue) => {
     const { email, password } = formValue;
-    auth.authorize({email, password})
+    auth.authorize({ email, password })
       .then(data => {
         if (data.token) {
           setUser(userName);
           localStorage.setItem('jwt', data.token);
           setLoggedIn(true)
-          handleLogin(formValue.email)
           navigate("/", { replace: true });
         }
       })
       .catch((err) => {
-         console.log(err)
+        setIsInfoTooltipOpen(true);
+        setTooltip({
+          image: false,
+          message: 'Что-то пошло не так! Попробуйте ещё раз.'
+        });
+        console.log(err)
       });
   }
 

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import React, { useState } from "react"
 
 export default function Login({ onLogin }) {
     const [formValue, setFormValue] = useState({
@@ -27,6 +27,7 @@ export default function Login({ onLogin }) {
             <form action="#" className="login__form" onSubmit={handleSubmit}>
                 <input
                     className="login__input"
+                    id="email"
                     required
                     type="email"
                     name="email"
@@ -36,6 +37,7 @@ export default function Login({ onLogin }) {
 
                 <input
                     className="login__input"
+                    id="password"
                     required
                     type="password"
                     name="password"
